@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер по казахскому языку : Уровни</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; background-color: #f0f4f8; }
+        #game-container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; min-height: 400px; }
+        
+        /* Стиль меню, нужно доработать в будущем */
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+        .level-btn { padding: 20px; font-size: 18px; background: #6c5ce7; color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .level-btn:hover { background: #a29bfe; transform: translateY(-2px); }
+
+        /* Игровой стиль,  сделал связку */
+        .hidden { display: none; }
+        .progress-container { background-color: #e9ecef; border-radius: 10px; height: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { background-color: #00b894; height: 100%; width: 0%; transition: 0.4s; }
+        
+        #word-display { font-size: 28px; font-weight: bold; margin-bottom: 25px; color: #2d3436; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option-btn { padding: 15px; font-size: 17px; border: 2px solid #dfe6e9; border-radius: 12px; background: white; cursor: pointer; }
+        
+        .correct { background-color: #55efc4 !important; border-color: #00b894 !important; }
+        .wrong { background-color: #ff7675 !important; border-color: #d63031 !important; }
+        
+        #next-btn, #back-btn { margin-top: 20px; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        #next-btn { background: #0984e3; color: white; display: none; }
+        #back-btn { background: #dfe6e9; color: #636e72; }
+
+        /* Стиль подписи */
+        .bottom-copyright {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+            width: 100%;
+        }
+
+        .bottom-copyright a {
+            color: #6c5ce7;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .bottom-copyright a:hover {
+            text-decoration: underline;
+        }
+/* Доп. для body, чтобы всё шло в колонку */
+        body { 
+            flex-direction: column; 
+            align-items: center; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="menu-screen">
+        <h2>Выберите уровень</h2>
+        <div class="menu-grid">
+            <button class="level-btn" onclick="startLevel('basic')">Основы (Слова)</button>
+            <button class="level-btn" onclick="startLevel('family')">Семья</button>
+            <button class="level-btn" onclick="startLevel('numbers')">Числа (1-10)</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div class="progress-container"><div id="progress-fill" class="progress-fill"></div></div>
+        <div id="word-display">...</div>
+        <div class="options-grid" id="options-container"></div>
+        <button id="next-btn" onclick="nextQuestion()">Далее</button>
+        <button id="back-btn" onclick="showMenu()">↩ К уровням</button>
+    </div>
+</div> <div class="bottom-copyright">
+    Разработано <a href="https://www.DigitalRepetitor.kz" target="_blank">DigitalRepetitor.kz</a>
+</div>
+
+<script>
+    // 1. БАЗА ДАННЫХ С УРОВНЯМИ
+    const allWords = [
+        // Уровень: Основы
+        { level: 'basic', russian: "Книга", kazakh: "Кітап", options: ["Кітап", "Қалам", "Үстел", "Терезе"] },
+        { level: 'basic', russian: "Школа", kazakh: "Мектеп", options: ["Мектеп", "Оқушы", "Дос", "Қала"] },
+        { level: 'basic', russian: "Спасибо", kazakh: "Рақмет", options: ["Рақмет", "Сәлем", "Сау бол", "Иә"] },
+        { level: 'basic', russian: "До свидания", kazakh: "Сау болыңыз", options: ["Көріңіз", "Сәлеметсіз бе", "Сау болыңыз", "Иә"] },
+        { level: 'basic', russian: "Привет", kazakh: "Сәлем", options: ["Көріңіз", "Сәлем", "Сау болыңыз", "Иә"] },
+        { level: 'basic', russian: "Здравствуйте", kazakh: "Сәлеметсіз бе", options: ["Сәлем", "Сәлеметсіз бе", "Сау болыңыз", "Иә"] },
+        { level: 'basic', russian: "Да", kazakh: "Иә", options: ["Кітап", "Қалам", "Иә", "Терезе"] },
+        { level: 'basic', russian: "Нет", kazakh: "Жоқ", options: ["Кітап", "Қалам", "Жоқ", "Терезе"] },
+        { level: 'basic', russian: "Дверь", kazakh: "Есік", options: ["Кітап", "Есік", "Үстел", "Терезе"] },
+        { level: 'basic', russian: "Окно", kazakh: "Терезе", options: ["Кітап", "Қалам", "Үстел", "Терезе"] },
+        { level: 'basic', russian: "Пока", kazakh: "Сау бол", options: ["Кітап", "Қалам", "Үстел", "Сау бол"] },
+        { level: 'basic', russian: "Стул", kazakh: "Орындық", options: ["Орындық", "Қалам", "Үстел", "Терезе"] },
+        { level: 'basic', russian: "Тетрадь", kazakh: "Дәптер", options: ["Кітап", "Қалам", "Үстел", "Дәптер"] },
+        { level: 'basic', russian: "Магазин", kazakh: "Дүкен", options: ["Кітап", "Дүкен", "Орындық", "Дәптер"] },
+
+        // Уровень: Семья
+        { level: 'family', russian: "Отец", kazakh: "Әке", options: ["Әке", "Ана", "Аға", "Іні"] },
+        { level: 'family', russian: "Мать", kazakh: "Ана", options: ["Апа", "Ана", "Сіңлі", "Қарындас"] },
+        { level: 'family', russian: "Брат", kazakh: "Аға", options: ["Аға", "Ата", "Әже", "Іні"] },
+        { level: 'family', russian: "Сестра", kazakh: "Әпке", options: ["Аға", "Ата", "Әпке", "Іні"] },
+        { level: 'family', russian: "Бабушка", kazakh: "Әже", options: ["Аға", "Ата", "Әже", "Іні"] },
+        { level: 'family', russian: "Дедушка", kazakh: "Ата", options: ["Аға", "Ата", "Әже", "Іні"] },
+        { level: 'family', russian: "Внук-Внучка", kazakh: "Немере", options: ["Аға", "Немере", "Әпке", "Іні"] },
+        { level: 'family', russian: "Тетя", kazakh: "Тәте", options: ["Аға", "Тәте", "Әже", "Іні"] },
+        { level: 'family', russian: "Дядя", kazakh: "Нағашы", options: ["Аға", "Тәте", "Әже", "Нағашы"] },
+
+        // Уровень: Числа
+        { level: 'numbers', russian: "Один", kazakh: "Бір", options: ["Бір", "Екі", "Үш", "Төрт"] },
+        { level: 'numbers', russian: "Два", kazakh: "Екі", options: ["Бес", "Екі", "Бір", "Алты"] },
+        { level: 'numbers', russian: "Три", kazakh: "Үш", options: ["Төрт", "Үш", "Екі", "Бір"] },
+        { level: 'numbers', russian: "Четыре", kazakh: "Төрт", options: ["Бес", "Алты", "Төрт", "Үш"] },
+        { level: 'numbers', russian: "Пять", kazakh: "Бес", options: ["Бес", "Екі", "Үш", "Төрт"] },
+        { level: 'numbers', russian: "Шесть", kazakh: "Алты", options: ["Бір", "Екі", "Үш", "Алты"] },
+        { level: 'numbers', russian: "Семь", kazakh: "Жеті", options: ["Жеті", "Сегіз", "Тоғыз", "Он"] },
+        { level: 'numbers', russian: "Восемь", kazakh: "Сегіз", options: ["Жеті", "Сегіз", "Тоғыз", "Он"] },
+        { level: 'numbers', russian: "Девять", kazakh: "Тоғыз", options: ["Жеті", "Сегіз", "Тоғыз", "Он"] },
+        { level: 'numbers', russian: "Десять", kazakh: "Он", options: ["Жеті", "Сегіз", "Тоғыз", "Он"] },
+    ];
+
+    let currentLevelWords = [];
+    let currentIdx = 0;
+    let score = 0;
+
+    function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+    function showMenu() {
+        document.getElementById('menu-screen').classList.remove('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+    }
+
+    function startLevel(levelName) {
+        // Фильтр по словам и выбранному уровню
+        currentLevelWords = shuffle(allWords.filter(w => w.level === levelName));
+        currentIdx = 0;
+        score = 0;
+        
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const data = currentLevelWords[currentIdx];
+        document.getElementById('word-display').innerText = data.russian;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        const shuffledOptions = shuffle([...data.options]);
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.classList.add('option-btn');
+            btn.onclick = () => checkAnswer(btn, opt);
+            container.appendChild(btn);
+        });
+
+        const progress = (currentIdx / currentLevelWords.length) * 100;
+        document.getElementById('progress-fill').style.width = progress + "%";
+    }
+
+    function checkAnswer(selectedBtn, choice) {
+        const correct = currentLevelWords[currentIdx].kazakh;
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        if (choice === correct) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            buttons.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < currentLevelWords.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('progress-fill').style.width = "100%";
+        document.getElementById('game-screen').innerHTML = `
+            <h2>Результат уровня</h2>
+            <p style="font-size: 22px;">Вы ответили правильно на <b>${score}</b> из ${currentLevelWords.length}</p>
+            <button onclick="location.reload()" id="next-btn" style="display:block">К списку уровней</button>
+        `;
+    }
+</script>
+
+</body>
+</html>
