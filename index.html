@@ -8,12 +8,12 @@
         body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; background-color: #f0f4f8; }
         #game-container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; min-height: 400px; }
         
-        /* Стиль меню, нужно доработать в будущем */
+        
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
         .level-btn { padding: 20px; font-size: 18px; background: #6c5ce7; color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
         .level-btn:hover { background: #a29bfe; transform: translateY(-2px); }
 
-        /* Игровой стиль,  сделал связку */
+        
         .hidden { display: none; }
         .progress-container { background-color: #e9ecef; border-radius: 10px; height: 10px; margin-bottom: 20px; overflow: hidden; }
         .progress-fill { background-color: #00b894; height: 100%; width: 0%; transition: 0.4s; }
@@ -29,7 +29,7 @@
         #next-btn { background: #0984e3; color: white; display: none; }
         #back-btn { background: #dfe6e9; color: #636e72; }
 
-        /* Стиль подписи */
+        
         .bottom-copyright {
             margin-top: 20px;
             font-size: 14px;
@@ -47,7 +47,7 @@
         .bottom-copyright a:hover {
             text-decoration: underline;
         }
-/* Доп. для body, чтобы всё шло в колонку */
+
         body { 
             flex-direction: column; 
             align-items: center; 
@@ -78,7 +78,7 @@
 </div>
 
 <script>
-    // 1. БАЗА ДАННЫХ С УРОВНЯМИ
+    
     const allWords = [
         // Уровень: Основы
         { level: 'basic', russian: "Книга", kazakh: "Кітап", options: ["Кітап", "Қалам", "Үстел", "Терезе"] },
@@ -132,7 +132,7 @@
     }
 
     function startLevel(levelName) {
-        // Фильтр по словам и выбранному уровню
+        
         currentLevelWords = shuffle(allWords.filter(w => w.level === levelName));
         currentIdx = 0;
         score = 0;
